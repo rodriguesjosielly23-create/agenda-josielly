@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ec4fa3" />
+    <title>Agenda Josielly</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./app-icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="./app-icon-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Josielly" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="star-sky" aria-hidden="true">
+      <span class="stars-layer layer-one"></span>
+      <span class="stars-layer layer-two"></span>
+      <span class="stars-layer layer-three"></span>
+    </div>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-copy" id="topo">
+          <p class="eyebrow">Agenda inteligente</p>
+          <h1 id="ownerName" contenteditable="true" spellcheck="false" title="Clique para editar o nome">JOSIELLY</h1>
+          <div class="clock-card">
+            <strong id="clockLabel">00:00</strong>
+            <span id="clockDateLabel"></span>
+          </div>
+          <p class="greeting">Olá, Josielly! Que tal transformar seus planos em grandes conquistas hoje?</p>
+          <p id="todayLabel" class="today"></p>
+          <div class="hero-actions">
+            <button class="primary-btn" id="newTaskBtn" type="button">
+              <span>+</span>
+              Novo compromisso
+            </button>
+            <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">
+              <span class="sun-icon">☀</span>
+              <span class="moon-icon">☾</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="focus-panel">
+          <div>
+            <p class="eyebrow">Seus próximos</p>
+            <h2>compromissos</h2>
+            <p>Organize seu dia e foque no que importa.</p>
+          </div>
+          <label class="photo-stage" for="photoInput" title="Trocar foto">
+            <img id="profilePhoto" alt="Foto de Josielly" />
+            <span class="photo-fallback">Adicionar foto</span>
+            <input id="photoInput" type="file" accept="image/*" />
+          </label>
+        </div>
+
+        <div class="hero-metrics" aria-label="Resumo da agenda">
+          <div>
+            <strong id="futureTasks">0</strong>
+            <span>futuros/recorrentes</span>
+          </div>
+          <div>
+            <strong id="todayTasks">0</strong>
+            <span>hoje</span>
+          </div>
+          <div>
+            <strong id="tomorrowTasks">0</strong>
+            <span>amanhã</span>
+          </div>
+          <div>
+            <strong id="weeklyTasks">0</strong>
+            <span>semanal</span>
+          </div>
+          <div>
+            <strong id="monthlyTasks">0</strong>
+            <span>mensal</span>
+          </div>
+          <div class="quote-card">
+            <strong>“</strong>
+            <span>Disciplina hoje,<br />liberdade amanhã.</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-grid">
+        <section class="command-panel" aria-label="Controles da agenda" hidden>
+          <div class="search-box">
+            <span aria-hidden="true">Q</span>
+            <input id="searchInput" type="search" placeholder="Buscar compromisso, categoria ou acompanhamento" />
+          </div>
+
+          <div class="account-panel">
+            <p class="panel-title">Calendários conectados</p>
+            <div class="account-chips">
+              <span>Gmail pessoal</span>
+              <span>Corporativo</span>
+            </div>
+            <div class="calendar-links">
+              <button id="googleBtn" type="button">Abrir no Google</button>
+              <button id="outlookBtn" type="button">Abrir no corporativo</button>
+            </div>
+          </div>
+
+          <div class="mini-actions">
+            <button id="exportBtn" type="button">Exportar .ics</button>
+            <label for="icsInput">Importar .ics</label>
+            <input id="icsInput" type="file" accept=".ics,text/calendar" />
+          </div>
+        </section>
+
+        <section class="calendar-panel" id="calendario" aria-label="Calendário mensal">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Calendário</p>
+              <h2 id="calendarTitle">Mês</h2>
+            </div>
+            <div class="calendar-nav">
+              <button class="icon-btn" id="prevMonthBtn" type="button" aria-label="Mês anterior">‹</button>
+              <button class="icon-btn" id="nextMonthBtn" type="button" aria-label="Próximo mês">›</button>
+            </div>
+          </div>
+          <div class="weekday-row" aria-hidden="true">
+            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+          <div class="day-summary">
+            <p class="panel-title">Resumo do dia</p>
+            <div class="summary-row">
+              <span>☑</span>
+              <strong id="summaryTodayCount">0 compromissos</strong>
+              <small>agendados para hoje</small>
+            </div>
+            <div class="summary-row">
+              <span>◷</span>
+              <strong id="summaryFreeTime">8h livres</strong>
+              <small>na sua agenda</small>
+            </div>
+            <div class="summary-row">
+              <span>↗</span>
+              <strong id="summaryUsage">0% do dia</strong>
+              <small>comprometido</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="day-panel" id="compromissos" aria-label="Compromissos do dia">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Dia selecionado</p>
+              <h2>Próximos compromissos</h2>
+              <p class="panel-subtitle" id="selectedDateTitle">Hoje</p>
+            </div>
+            <button class="soft-btn" id="clearDateBtn" type="button">Ver todos</button>
+          </div>
+          <div class="view-tabs" aria-label="Filtros rápidos">
+            <button class="is-active" data-view="today" type="button">Hoje</button>
+            <button data-view="tomorrow" type="button">Amanhã</button>
+            <button data-view="week" type="button">Esta semana</button>
+          </div>
+          <div id="dayList" class="day-list"></div>
+        </section>
+
+        <section class="attention-panel" aria-label="O que preciso olhar hoje">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Alertas do dia</p>
+              <h2>O que preciso olhar hoje</h2>
+            </div>
+            <span class="attention-count" id="attentionCount">0</span>
+          </div>
+          <div class="attention-list" id="attentionList"></div>
+        </section>
+
+        <section class="task-search-panel" aria-label="Pesquisar compromissos">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Pesquisa</p>
+              <h2>Buscar compromisso</h2>
+            </div>
+          </div>
+          <div class="search-box">
+            <span aria-hidden="true">Q</span>
+            <input id="taskSearchInput" type="search" placeholder="Buscar entre todos os títulos criados" />
+          </div>
+          <div class="task-search-list" id="taskSearchList"></div>
+        </section>
+
+        <section class="management-panel" id="rotinas" aria-label="Rotinas de gerenciamento micro e macrooperacional mensal">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Rotinas</p>
+              <h2>Gerenciamento Micro e Macrooperacional Mensal</h2>
+            </div>
+          </div>
+
+          <div class="routine-layout">
+            <form class="management-form routine-form" id="routineForm">
+              <input id="routineId" type="hidden" />
+              <label>
+                Título da demanda
+                <input id="routineTitle" maxlength="110" placeholder="Ex.: Tabulação, cobrança, retorno, relatório" required />
+              </label>
+              <label>
+                Status da demanda
+                <select id="routineStatus">
+                  <option>Em andamento</option>
+                  <option>Aguardando retorno</option>
+                  <option>Pendente</option>
+                  <option>Concluído</option>
+                </select>
+              </label>
+              <label>
+                Acompanhamento da demanda
+                <textarea id="routineBody" rows="8" placeholder="Escreva livremente o que está acontecendo, datas, retornos, pendências e próximos passos." required></textarea>
+              </label>
+              <div class="form-actions">
+                <button class="soft-btn" id="clearRoutineBtn" type="button">Limpar</button>
+                <button class="primary-btn" type="submit">Salvar demanda</button>
+              </div>
+            </form>
+
+            <aside class="routine-side">
+              <div class="search-box routine-search">
+                <span aria-hidden="true">Q</span>
+                <input id="routineSearch" type="search" placeholder="Buscar título ou acompanhamento" />
+              </div>
+              <div class="routine-summary">
+                <strong id="routineCount">0</strong>
+                <span>títulos cadastrados</span>
+              </div>
+              <div class="management-list" id="routineList"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="board" aria-label="Quadro Kanban da agenda">
+          <div class="column" data-status="today">
+            <div class="column-head">
+              <h2>Hoje</h2>
+              <span id="count-today">0</span>
+            </div>
+            <div class="cards" id="today"></div>
+          </div>
+          <div class="column" data-status="week">
+            <div class="column-head">
+              <h2>Semana</h2>
+              <span id="count-week">0</span>
+            </div>
+            <div class="cards" id="week"></div>
+          </div>
+          <div class="column" data-status="follow">
+            <div class="column-head">
+              <h2>Acompanhamentos</h2>
+              <span id="count-follow">0</span>
+            </div>
+            <div class="cards" id="follow"></div>
+          </div>
+          <div class="column" data-status="done">
+            <div class="column-head">
+              <h2>Finalizado</h2>
+              <span id="count-done">0</span>
+            </div>
+            <div class="cards" id="done"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="taskDialog">
+      <form id="taskForm" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">Compromisso</p>
+            <h2 id="dialogTitle">Novo compromisso</h2>
+          </div>
+          <button class="icon-btn" id="closeDialogBtn" type="button" aria-label="Fechar">×</button>
+        </div>
+        <input type="hidden" id="taskId" />
+        <label>
+          Título
+          <input id="titleInput" required maxlength="80" placeholder="Ex.: reunião, consulta, retorno" />
+        </label>
+        <div class="form-grid">
+          <label>
+            Data
+            <input id="dateInput" type="date" required />
+          </label>
+          <label>
+            Hora
+            <input id="timeInput" type="time" />
+          </label>
+        </div>
+        <label>
+          Duração
+          <select id="durationInput">
+            <option value="30">30 minutos</option>
+            <option value="60">1 hora</option>
+            <option value="90">1h 30m</option>
+            <option value="120">2 horas</option>
+            <option value="180">3 horas</option>
+          </select>
+        </label>
+        <p class="form-alert" id="scheduleAlert" role="alert"></p>
+        <label>
+          Categoria
+          <select id="categoryInput">
+            <option>Pessoal</option>
+            <option>Trabalho</option>
+            <option>Saúde</option>
+            <option>Família</option>
+            <option>Financeiro</option>
+          </select>
+        </label>
+        <label>
+          Prioridade
+          <select id="priorityInput">
+            <option value="low">Leve</option>
+            <option value="medium">Importante</option>
+            <option value="high">Urgente</option>
+          </select>
+        </label>
+        <div class="form-grid">
+          <label>
+            Repetição
+            <select id="repeatInput">
+              <option value="none">Não repetir</option>
+              <option value="weekdays">Todos os dias da semana</option>
+              <option value="weekly">Toda semana neste dia</option>
+              <option value="monthly">Todo mês nesta data</option>
+            </select>
+          </label>
+          <label>
+            Repetir até
+            <input id="repeatUntilInput" type="date" />
+          </label>
+        </div>
+        <label>
+          Acompanhamento
+          <textarea id="notesInput" rows="4" placeholder="Status, próximos passos, observações"></textarea>
+        </label>
+        <div class="attachments-panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="eyebrow">Anexos</p>
+              <h3>Arquivos e prints</h3>
+            </div>
+            <label class="soft-btn attach-btn" for="attachmentInput">Anexar arquivo</label>
+            <input id="attachmentInput" type="file" multiple />
+          </div>
+          <div class="paste-zone" id="pasteZone" tabindex="0">Clique aqui e cole um print com Ctrl+V</div>
+          <div class="attachment-list" id="attachmentList"></div>
+        </div>
+        <label class="check-row">
+          <input id="doneInput" type="checkbox" />
+          Marcar como finalizado
+        </label>
+        <menu>
+          <button class="danger-btn" id="deleteTaskBtn" type="button">Excluir</button>
+          <button class="soft-btn" id="cancelBtn" type="button">Cancelar</button>
+          <button class="primary-btn" type="submit">Salvar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
