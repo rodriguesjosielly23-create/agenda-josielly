@@ -1,26 +1,21 @@
-const cacheName = "agenda-josielly-cache-v40";
-const assets = [
-  "./",
-  "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./manifest.json",
-  "./icon.svg",
-  "./app-icon-180.png",
-  "./app-icon-192.png",
-  "./app-icon-512.png"
-];
+const cacheName = "agenda-josielly-cache-v43";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(cacheName).then((cache) => cache.addAll(assets)));
+  self.skipWaiting();
+  event.waitUntil(caches.delete(cacheName));
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== cacheName).map((key) => caches.delete(key))))
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then(() => self.registration.unregister())
+      .then(() => self.clients.matchAll({ type: "window" }))
+      .then((clients) => clients.forEach((client) => client.navigate(client.url)))
   );
 });
 
-self.addEventListener("fetch", (event) => {
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+self.addEventListener("fetch", () => {
+  return;
 });
