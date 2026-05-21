@@ -1,6 +1,7 @@
 const storageKey = "agenda-josielly-v2";
 const oldStorageKey = "agenda-josielly-v1";
 const photoKey = "agenda-josielly-photo";
+const defaultPhoto = "./app-icon-512.png";
 const themeKey = "agenda-josielly-theme";
 const nameKey = "agenda-josielly-name";
 const managementKey = "agenda-josielly-management";
@@ -1139,6 +1140,9 @@ els.ownerName.addEventListener("keydown", (event) => {
 const savedPhoto = localStorage.getItem(photoKey);
 if (savedPhoto) {
   els.profilePhoto.src = savedPhoto;
+  els.photoStage.classList.add("has-photo");
+} else {
+  els.profilePhoto.src = defaultPhoto;
   els.photoStage.classList.add("has-photo");
 }
 
