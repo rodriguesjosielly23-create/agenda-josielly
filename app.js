@@ -4,6 +4,8 @@ const photoKey = "agenda-josielly-photo";
 const themeKey = "agenda-josielly-theme";
 const nameKey = "agenda-josielly-name";
 const managementKey = "agenda-josielly-management";
+const supabaseUrl = "https://hbgzstzoqkrgzdiqqome.supabase.co";
+const supabaseKey = "sb_publishable_9NmOWScYrvZMrjgBxVMGIg_c-5-F2Ms";
 const columns = ["today", "week", "follow", "done"];
 const priorityLabels = { low: "Leve", medium: "Importante", high: "Urgente" };
 const repeatLabels = {
@@ -101,27 +103,12 @@ function loadTasks() {
       ...task
     }));
   }
-
-  const today = localDateISO();
-  return [
-    {
-      id: crypto.randomUUID(),
-      title: "Organizar a semana",
-      date: today,
-      time: "09:00",
-      account: "Gmail pessoal",
-      category: "Pessoal",
-      priority: "medium",
-      notes: "Definir prioridades, compromissos e acompanhamentos.",
-      status: "today",
-      done: false,
-      createdAt: Date.now()
-    }
-  ];
+  return [];
 }
 
 function saveTasks() {
   localStorage.setItem(storageKey, JSON.stringify(state.tasks));
+  syncTasksToCloud();
 }
 
 function loadManagement() {
@@ -156,6 +143,155 @@ function loadManagement() {
 
 function saveManagement() {
   localStorage.setItem(managementKey, JSON.stringify(state.management));
+  syncRoutinesToCloud();
+}
+
+async function supabaseRequest(path, options = {}) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase ${response.status}`);
+  }
+
+  if (response.status === 204) return null;
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
+
+function taskToRow(task) {
+  return {
+    id: task.id,
+    title: task.title,
+    date: task.date || null,
+    time: task.time || null,
+    duration: Number(task.duration || 30),
+    category: task.category || "Pessoal",
+    priority: task.priority || "low",
+    repeat: task.repeat || "none",
+    repeat_until: task.repeatUntil || null,
+    notes: task.notes || "",
+    status: task.status || (task.done ? "done" : "today"),
+    completed: Boolean(task.done),
+    attachments: task.attachments || [],
+    created_at: new Date(task.createdAt || Date.now()).toISOString(),
+    updated_at: new Date().toISOString()
+  };
+}
+
+function rowToTask(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    date: row.date || localDateISO(),
+    time: row.time || "",
+    duration: Number(row.duration || 30),
+    account: "Agenda online",
+    category: row.category || "Pessoal",
+    priority: row.priority || "low",
+    repeat: row.repeat || "none",
+    repeatUntil: row.repeat_until || "",
+    notes: row.notes || "",
+    status: row.status || (row.completed ? "done" : "today"),
+    done: Boolean(row.completed),
+    attachments: Array.isArray(row.attachments) ? row.attachments : [],
+    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now()
+  };
+}
+
+function routineToRow(record) {
+  return {
+    id: record.id,
+    type: "mensal",
+    title: record.title,
+    description: record.body || "",
+    status: record.status || "Em andamento",
+    created_at: new Date(record.createdAt || Date.now()).toISOString(),
+    updated_at: new Date(record.updatedAt || Date.now()).toISOString()
+  };
+}
+
+function rowToRoutine(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    body: row.description || "",
+    status: row.status || "Em andamento",
+    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : Date.now()
+  };
+}
+
+async function loadCloudData() {
+  try {
+    const [tasks, routines] = await Promise.all([
+      supabaseRequest("commitments?select=*&order=date.asc,time.asc"),
+      supabaseRequest("routines?select=*&order=updated_at.desc")
+    ]);
+
+    if (Array.isArray(tasks) && tasks.length) {
+      state.tasks = tasks.map(rowToTask);
+      localStorage.setItem(storageKey, JSON.stringify(state.tasks));
+    } else if (state.tasks.length) {
+      syncTasksToCloud();
+    }
+
+    if (Array.isArray(routines) && routines.length) {
+      state.management.routines = routines.map(rowToRoutine);
+      localStorage.setItem(managementKey, JSON.stringify(state.management));
+    } else if (state.management.routines.length) {
+      syncRoutinesToCloud();
+    }
+
+    render();
+  } catch (error) {
+    console.warn("Agenda online indisponivel. Usando dados locais.", error);
+  }
+}
+
+async function syncTasksToCloud() {
+  if (!navigator.onLine || !state.tasks.length) return;
+  try {
+    await supabaseRequest("commitments?on_conflict=id", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates" },
+      body: JSON.stringify(state.tasks.map(taskToRow))
+    });
+  } catch (error) {
+    console.warn("Nao foi possivel sincronizar compromissos.", error);
+  }
+}
+
+async function syncRoutinesToCloud() {
+  const routines = state.management.routines;
+  if (!navigator.onLine || !routines.length) return;
+  try {
+    await supabaseRequest("routines?on_conflict=id", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates" },
+      body: JSON.stringify(routines.map(routineToRow))
+    });
+  } catch (error) {
+    console.warn("Nao foi possivel sincronizar demandas.", error);
+  }
+}
+
+async function deleteCloudRecord(table, id) {
+  if (!navigator.onLine || !id) return;
+  try {
+    await supabaseRequest(`${table}?id=eq.${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    });
+  } catch (error) {
+    console.warn("Nao foi possivel excluir na nuvem.", error);
+  }
 }
 
 function localDateISO(date = new Date()) {
@@ -585,6 +721,7 @@ function editManagement(id) {
 
 function removeManagement(id) {
   state.management.routines = state.management.routines.filter((record) => record.id !== id);
+  deleteCloudRecord("routines", id);
   saveManagement();
   renderManagement();
 }
@@ -862,6 +999,7 @@ function addDays(date, amount) {
 
 function removeTask(id) {
   state.tasks = state.tasks.filter((task) => task.id !== id);
+  deleteCloudRecord("commitments", id);
   saveTasks();
   render();
   if (els.taskDialog.open) els.taskDialog.close();
@@ -1109,8 +1247,10 @@ setTheme(localStorage.getItem(themeKey) || "dark");
 setInterval(renderClock, 30000);
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
+  navigator.serviceWorker.getRegistrations()
+    .then((registrations) => registrations.forEach((registration) => registration.unregister()))
+    .catch(() => {});
 }
 
-saveTasks();
 render();
+loadCloudData();
