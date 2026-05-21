@@ -707,6 +707,7 @@ textarea:focus {
 
 .routine-layout {
   grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+  align-items: start;
 }
 
 .management-column {
@@ -759,6 +760,21 @@ textarea:focus {
     var(--surface-strong);
 }
 
+.routine-form {
+  align-self: start;
+}
+
+.routine-form textarea {
+  min-height: 128px;
+  max-height: 170px;
+  resize: vertical;
+}
+
+.routine-side {
+  max-height: 560px;
+  overflow: hidden;
+}
+
 .routine-search {
   margin-bottom: 12px;
 }
@@ -792,6 +808,18 @@ textarea:focus {
   display: grid;
   gap: 10px;
   margin-top: 14px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.management-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.management-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--hot-pink), var(--violet));
 }
 
 .management-card {
