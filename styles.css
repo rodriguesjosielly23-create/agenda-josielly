@@ -614,6 +614,30 @@ textarea:focus {
   font-weight: 900;
 }
 
+.attention-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.overdue-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0 14px;
+  color: var(--muted);
+  background: var(--surface-strong);
+  font-weight: 900;
+}
+
+.overdue-count.has-overdue {
+  border-color: rgba(255, 95, 126, 0.42);
+  color: #fff;
+  background: linear-gradient(135deg, #ff5f7e, #b02adf);
+}
+
 .attention-list {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));
@@ -629,6 +653,11 @@ textarea:focus {
   color: var(--ink);
   background: var(--surface-strong);
   text-align: left;
+}
+
+.attention-item.is-overdue {
+  border-color: rgba(255, 95, 126, 0.42);
+  background: linear-gradient(135deg, rgba(255, 95, 126, 0.13), rgba(176, 42, 223, 0.09)), var(--surface-strong);
 }
 
 .attention-item strong {

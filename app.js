@@ -90,6 +90,7 @@ const els = {
   routineCount: document.querySelector("#routineCount"),
   routineList: document.querySelector("#routineList"),
   clearRoutineBtn: document.querySelector("#clearRoutineBtn"),
+  overdueCount: document.querySelector("#overdueCount"),
   attentionCount: document.querySelector("#attentionCount"),
   attentionList: document.querySelector("#attentionList"),
   taskSearchInput: document.querySelector("#taskSearchInput"),
@@ -565,6 +566,16 @@ function renderRoutineList() {
 function renderAttention() {
   const today = localDateISO();
   const tomorrow = localDateISO(addDays(new Date(), 1));
+  const overdueAlerts = state.tasks
+    .filter((task) => !task.done && task.date && task.date < today)
+    .sort((a, b) => (a.date + (a.time || "99:99")).localeCompare(b.date + (b.time || "99:99")))
+    .map((task) => ({
+      kind: "Atrasado",
+      title: task.title,
+      detail: `Venceu em ${formatDate(task.date)}${task.time ? ` · ${task.time}` : ""}`,
+      overdue: true,
+      action: () => openTask(task.id)
+    }));
   const taskAlerts = state.tasks
     .filter((task) => !task.done && (task.date === today || task.date === tomorrow))
     .sort((a, b) => (a.date + (a.time || "99:99")).localeCompare(b.date + (b.time || "99:99")))
@@ -585,7 +596,9 @@ function renderAttention() {
       action: () => editManagement(record.id)
     }));
 
-  const alerts = [...taskAlerts, ...demandAlerts].slice(0, 8);
+  const alerts = [...overdueAlerts, ...taskAlerts, ...demandAlerts].slice(0, 8);
+  els.overdueCount.textContent = `${overdueAlerts.length} ${overdueAlerts.length === 1 ? "atrasado" : "atrasados"}`;
+  els.overdueCount.classList.toggle("has-overdue", overdueAlerts.length > 0);
   els.attentionCount.textContent = alerts.length;
   els.attentionList.innerHTML = "";
 
@@ -600,9 +613,9 @@ function renderAttention() {
   alerts.forEach((item) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "attention-item";
+    button.className = `attention-item${item.overdue ? " is-overdue" : ""}`;
     button.innerHTML = `
-      <span class="status-badge">${escapeHtml(item.kind)}</span>
+      <span class="status-badge${item.overdue ? " is-pending" : ""}">${escapeHtml(item.kind)}</span>
       <strong>${escapeHtml(item.title)}</strong>
       <small>${escapeHtml(item.detail)}</small>
     `;
