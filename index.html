@@ -291,18 +291,52 @@
           <label>
             Hora
             <input id="timeInput" type="time" />
+            <button class="schedule-view-btn" id="showAvailabilityBtn" type="button">Ver horários do dia</button>
           </label>
         </div>
-        <label>
-          Duração
-          <select id="durationInput">
-            <option value="30">30 minutos</option>
-            <option value="60">1 hora</option>
-            <option value="90">1h 30m</option>
-            <option value="120">2 horas</option>
-            <option value="180">3 horas</option>
-          </select>
-        </label>
+        <div class="form-grid duration-grid">
+          <label>
+            Duração
+            <select id="durationInput">
+              <option value="15">15 minutos</option>
+              <option value="30" selected>30 minutos</option>
+              <option value="45">45 minutos</option>
+              <option value="60">1 hora</option>
+              <option value="90">1h 30m</option>
+              <option value="120">2 horas</option>
+              <option value="150">2h 30m</option>
+              <option value="180">3 horas</option>
+              <option value="240">4 horas</option>
+              <option value="custom">Personalizar</option>
+            </select>
+          </label>
+          <label id="customDurationWrap" hidden>
+            Tempo personalizado
+            <span class="minutes-input">
+              <input id="customDurationInput" type="number" min="5" max="720" step="5" value="30" />
+              <small>minutos</small>
+            </span>
+          </label>
+        </div>
+        <aside class="availability-panel" id="availabilityPanel" hidden>
+          <div class="availability-head">
+            <div>
+              <p class="eyebrow">Disponibilidade</p>
+              <h3 id="availabilityTitle">Horários do dia</h3>
+            </div>
+            <button class="availability-close" id="closeAvailabilityBtn" type="button" aria-label="Fechar horários">×</button>
+          </div>
+          <div class="availability-grid">
+            <div>
+              <p class="availability-label">Compromissos marcados</p>
+              <div class="slot-list" id="occupiedSlots"></div>
+            </div>
+            <div>
+              <p class="availability-label">Horários livres</p>
+              <div class="slot-list free-slots" id="freeSlots"></div>
+            </div>
+          </div>
+        </aside>
         <p class="form-alert" id="scheduleAlert" role="alert"></p>
         <label>
           Categoria

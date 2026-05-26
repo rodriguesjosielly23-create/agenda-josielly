@@ -1215,6 +1215,10 @@ dialog {
   padding: 0;
 }
 
+#taskDialog {
+  width: min(700px, calc(100vw - 28px));
+}
+
 dialog::backdrop {
   background: rgba(24, 10, 34, 0.42);
   backdrop-filter: blur(7px);
@@ -1249,6 +1253,144 @@ label {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+}
+
+.duration-grid {
+  align-items: end;
+}
+
+.minutes-input {
+  position: relative;
+  display: block;
+}
+
+.minutes-input input {
+  padding-right: 70px;
+}
+
+.minutes-input small {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.schedule-view-btn {
+  width: fit-content;
+  border: 0;
+  padding: 0;
+  color: #db7aff;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.availability-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(236, 79, 163, 0.24);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.availability-panel[hidden] {
+  display: none;
+}
+
+.availability-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.availability-head .eyebrow {
+  margin-bottom: 4px;
+  font-size: 0.66rem;
+}
+
+.availability-head h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.availability-close {
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 900;
+}
+
+.availability-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.availability-label {
+  margin: 0 0 7px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.slot-list {
+  display: grid;
+  gap: 6px;
+  max-height: 172px;
+  overflow-y: auto;
+}
+
+.occupied-slot,
+.free-slot {
+  display: grid;
+  gap: 2px;
+  border-radius: 11px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.occupied-slot {
+  border-left: 3px solid var(--hot-pink);
+  background: rgba(236, 79, 163, 0.09);
+}
+
+.free-slot {
+  border: 1px solid rgba(40, 215, 194, 0.22);
+  color: var(--ink);
+  background: rgba(40, 215, 194, 0.07);
+}
+
+.free-slot:hover {
+  border-color: rgba(40, 215, 194, 0.44);
+  background: rgba(40, 215, 194, 0.14);
+}
+
+.free-slot.is-too-short {
+  border-color: var(--line);
+  opacity: 0.56;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.occupied-slot strong,
+.free-slot strong {
+  font-size: 0.8rem;
+}
+
+.occupied-slot span,
+.free-slot span,
+.slot-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .form-alert {
@@ -1450,6 +1592,10 @@ menu {
   }
 
   .attention-group-list {
+    grid-template-columns: 1fr;
+  }
+
+  .availability-grid {
     grid-template-columns: 1fr;
   }
 

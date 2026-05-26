@@ -49,6 +49,14 @@ const els = {
   dateInput: document.querySelector("#dateInput"),
   timeInput: document.querySelector("#timeInput"),
   durationInput: document.querySelector("#durationInput"),
+  customDurationWrap: document.querySelector("#customDurationWrap"),
+  customDurationInput: document.querySelector("#customDurationInput"),
+  showAvailabilityBtn: document.querySelector("#showAvailabilityBtn"),
+  availabilityPanel: document.querySelector("#availabilityPanel"),
+  availabilityTitle: document.querySelector("#availabilityTitle"),
+  occupiedSlots: document.querySelector("#occupiedSlots"),
+  freeSlots: document.querySelector("#freeSlots"),
+  closeAvailabilityBtn: document.querySelector("#closeAvailabilityBtn"),
   scheduleAlert: document.querySelector("#scheduleAlert"),
   categoryInput: document.querySelector("#categoryInput"),
   priorityInput: document.querySelector("#priorityInput"),
@@ -859,15 +867,32 @@ function openTask(id) {
   els.titleInput.value = task?.title || "";
   els.dateInput.value = task?.date || state.selectedDate || localDateISO();
   els.timeInput.value = task?.time || "";
-  els.durationInput.value = String(task?.duration || 30);
+  setDurationFields(Number(task?.duration || 30));
   els.categoryInput.value = task?.category || "Pessoal";
   els.priorityInput.value = task?.priority || "low";
   els.repeatInput.value = task?.repeat || "none";
   els.repeatUntilInput.value = task?.repeatUntil || "";
   els.notesInput.value = task?.notes || "";
   els.doneInput.checked = Boolean(task?.done);
+  els.availabilityPanel.hidden = true;
   renderAttachments();
   els.taskDialog.showModal();
+}
+
+function setDurationFields(duration) {
+  const presetValues = ["15", "30", "45", "60", "90", "120", "150", "180", "240"];
+  const value = String(duration || 30);
+  const isCustom = !presetValues.includes(value);
+  els.durationInput.value = isCustom ? "custom" : value;
+  els.customDurationInput.value = value;
+  els.customDurationWrap.hidden = !isCustom;
+}
+
+function getSelectedDuration() {
+  if (els.durationInput.value === "custom") {
+    return Math.min(720, Math.max(5, Number(els.customDurationInput.value) || 30));
+  }
+  return Number(els.durationInput.value || 30);
 }
 
 function upsertTask() {
@@ -880,7 +905,7 @@ function upsertTask() {
     title: els.titleInput.value.trim(),
     date: els.dateInput.value,
     time: els.timeInput.value,
-    duration: Number(els.durationInput.value),
+    duration: getSelectedDuration(),
     account: existing?.account || "Gmail pessoal",
     category: els.categoryInput.value,
     priority: els.priorityInput.value,
@@ -928,6 +953,99 @@ function findScheduleConflict(candidates, editingId = "") {
       });
     })
     .find(Boolean);
+}
+
+function showAvailability() {
+  renderAvailability();
+  els.availabilityPanel.hidden = false;
+}
+
+function renderAvailability() {
+  const date = els.dateInput.value || state.selectedDate || localDateISO();
+  const editingId = els.taskId.value;
+  const appointments = state.tasks
+    .filter((task) => !task.done && task.date === date && task.time && task.id !== editingId)
+    .sort((a, b) => a.time.localeCompare(b.time));
+
+  els.availabilityTitle.textContent = formatDate(date, "long");
+  els.occupiedSlots.innerHTML = "";
+  els.freeSlots.innerHTML = "";
+
+  if (!appointments.length) {
+    els.occupiedSlots.innerHTML = '<p class="slot-empty">Nenhum horário ocupado</p>';
+  } else {
+    appointments.forEach((task) => {
+      const item = document.createElement("div");
+      item.className = "occupied-slot";
+      item.innerHTML = `
+        <strong>${escapeHtml(task.time)} - ${escapeHtml(addMinutesToTime(task.time, Number(task.duration || 30)))}</strong>
+        <span>${escapeHtml(task.title)}</span>
+      `;
+      els.occupiedSlots.appendChild(item);
+    });
+  }
+
+  const freeRanges = findAvailableRanges(appointments);
+  if (!freeRanges.length) {
+    els.freeSlots.innerHTML = '<p class="slot-empty">Sem intervalos livres entre 09:00 e 18:00</p>';
+    return;
+  }
+
+  const requestedDuration = getSelectedDuration();
+  freeRanges.forEach((range) => {
+    const button = document.createElement("button");
+    const fitsDuration = range.end - range.start >= requestedDuration;
+    button.className = `free-slot${fitsDuration ? "" : " is-too-short"}`;
+    button.type = "button";
+    button.disabled = !fitsDuration;
+    button.innerHTML = `
+      <strong>${minutesToTime(range.start)} - ${minutesToTime(range.end)}</strong>
+      <span>${fitsDuration ? `${formatMinutes(range.end - range.start)} livres` : "Intervalo menor que a duração"}</span>
+    `;
+    button.addEventListener("click", () => {
+      els.timeInput.value = minutesToTime(range.start);
+      validateDraftSchedule();
+    });
+    els.freeSlots.appendChild(button);
+  });
+}
+
+function findAvailableRanges(appointments) {
+  const ranges = [];
+  let cursor = workdayStartMinutes;
+  appointments.forEach((task) => {
+    const start = timeToMinutes(task.time);
+    const end = start + Number(task.duration || 30);
+    if (end <= workdayStartMinutes || start >= workdayEndMinutes) return;
+    const boundedStart = Math.max(workdayStartMinutes, start);
+    const boundedEnd = Math.min(workdayEndMinutes, end);
+    if (boundedStart > cursor) ranges.push({ start: cursor, end: boundedStart });
+    cursor = Math.max(cursor, boundedEnd);
+  });
+  if (cursor < workdayEndMinutes) ranges.push({ start: cursor, end: workdayEndMinutes });
+  return ranges;
+}
+
+function minutesToTime(totalMinutes) {
+  const hours = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
+  const minutes = String(totalMinutes % 60).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function validateDraftSchedule() {
+  if (!els.dateInput.value || !els.timeInput.value) {
+    els.scheduleAlert.textContent = "";
+    return;
+  }
+  const candidate = {
+    date: els.dateInput.value,
+    time: els.timeInput.value,
+    duration: getSelectedDuration()
+  };
+  const conflict = findScheduleConflict([candidate], els.taskId.value);
+  els.scheduleAlert.textContent = conflict
+    ? `Horário indisponível: ${conflict.title} já está marcado das ${conflict.time} às ${addMinutesToTime(conflict.time, Number(conflict.duration || 30))}. Escolha um horário livre.`
+    : "";
 }
 
 function timeToMinutes(time) {
@@ -1214,6 +1332,27 @@ els.photoInput.addEventListener("change", (event) => {
 document.querySelector("#newTaskBtn").addEventListener("click", () => openTask());
 document.querySelector("#closeDialogBtn").addEventListener("click", () => els.taskDialog.close());
 document.querySelector("#cancelBtn").addEventListener("click", () => els.taskDialog.close());
+els.showAvailabilityBtn.addEventListener("click", showAvailability);
+els.closeAvailabilityBtn.addEventListener("click", () => {
+  els.availabilityPanel.hidden = true;
+});
+els.timeInput.addEventListener("focus", showAvailability);
+els.timeInput.addEventListener("change", validateDraftSchedule);
+els.dateInput.addEventListener("change", () => {
+  if (!els.availabilityPanel.hidden) renderAvailability();
+  validateDraftSchedule();
+});
+els.durationInput.addEventListener("change", () => {
+  const isCustom = els.durationInput.value === "custom";
+  els.customDurationWrap.hidden = !isCustom;
+  if (isCustom) els.customDurationInput.focus();
+  if (!els.availabilityPanel.hidden) renderAvailability();
+  validateDraftSchedule();
+});
+els.customDurationInput.addEventListener("input", () => {
+  if (!els.availabilityPanel.hidden) renderAvailability();
+  validateDraftSchedule();
+});
 els.deleteTaskBtn.addEventListener("click", () => removeTask(els.taskId.value));
 els.taskForm.addEventListener("submit", (event) => {
   event.preventDefault();
