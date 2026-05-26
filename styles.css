@@ -641,8 +641,7 @@ textarea:focus {
 
 .attention-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(280px, 1fr));
-  gap: 7px 12px;
+  gap: 15px;
   max-height: 340px;
   overflow-y: auto;
   padding-right: 6px;
@@ -655,6 +654,44 @@ textarea:focus {
 .attention-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(236, 79, 163, 0.8), rgba(178, 104, 255, 0.8));
+}
+
+.attention-group {
+  display: grid;
+  gap: 8px;
+}
+
+.attention-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.attention-group-head h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.attention-group-head span {
+  min-width: 22px;
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: #f5daff;
+  background: rgba(178, 104, 255, 0.16);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.attention-group-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 7px 12px;
 }
 
 .attention-item {
@@ -1409,6 +1446,10 @@ menu {
   .routine-layout,
   .board,
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .attention-group-list {
     grid-template-columns: 1fr;
   }
 

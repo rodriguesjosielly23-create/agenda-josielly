@@ -571,7 +571,8 @@ function renderAttention() {
     .sort((a, b) => (a.date + (a.time || "99:99")).localeCompare(b.date + (b.time || "99:99")))
     .map((task) => ({
       id: task.id,
-      kind: "Atrasado",
+      kind: task.repeat === "weekdays" ? "Diário" : task.repeat === "monthly" ? "Mensal" : "Atrasado",
+      repeat: task.repeat || "none",
       title: task.title,
       detail: `Venceu em ${formatDate(task.date)}${task.time ? ` · ${task.time}` : ""}`,
       overdue: true,
@@ -610,25 +611,47 @@ function renderAttention() {
     return;
   }
 
-  alerts.forEach((item) => {
-    const itemElement = document.createElement("article");
-    itemElement.className = `attention-item${item.overdue ? " is-overdue" : ""}`;
-    itemElement.innerHTML = `
-      <button class="attention-open" type="button">
-        <span class="status-badge${item.overdue ? " is-pending" : ""}">${escapeHtml(item.kind)}</span>
-        <strong>${escapeHtml(item.title)}</strong>
-        <small>${escapeHtml(item.detail)}</small>
-      </button>
-      ${item.overdue ? '<button class="finish-overdue" type="button" aria-label="Finalizar compromisso" title="Finalizar">✓</button>' : ""}
-    `;
-    itemElement.querySelector(".attention-open").addEventListener("click", item.action);
-    if (item.overdue) {
-      itemElement.querySelector(".finish-overdue").addEventListener("click", () => {
-        finishOverdueTask(item.id);
-      });
-    }
-    els.attentionList.appendChild(itemElement);
-  });
+  renderAttentionGroup("Atrasados diários", overdueAlerts.filter((item) => item.repeat === "weekdays"));
+  renderAttentionGroup("Atrasados mensais", overdueAlerts.filter((item) => item.repeat === "monthly"));
+  renderAttentionGroup("Atrasados semanais", overdueAlerts.filter((item) => item.repeat === "weekly"));
+  renderAttentionGroup("Atrasados pontuais", overdueAlerts.filter((item) => item.repeat === "none"));
+  renderAttentionGroup("Hoje, amanhã e demandas", [...taskAlerts, ...demandAlerts]);
+}
+
+function renderAttentionGroup(title, items) {
+  if (!items.length) return;
+  const group = document.createElement("section");
+  group.className = "attention-group";
+  group.innerHTML = `
+    <div class="attention-group-head">
+      <h3>${escapeHtml(title)}</h3>
+      <span>${items.length}</span>
+    </div>
+    <div class="attention-group-list"></div>
+  `;
+  const list = group.querySelector(".attention-group-list");
+  items.forEach((item) => list.appendChild(createAttentionItem(item)));
+  els.attentionList.appendChild(group);
+}
+
+function createAttentionItem(item) {
+  const itemElement = document.createElement("article");
+  itemElement.className = `attention-item${item.overdue ? " is-overdue" : ""}`;
+  itemElement.innerHTML = `
+    <button class="attention-open" type="button">
+      <span class="status-badge${item.overdue ? " is-pending" : ""}">${escapeHtml(item.kind)}</span>
+      <strong>${escapeHtml(item.title)}</strong>
+      <small>${escapeHtml(item.detail)}</small>
+    </button>
+    ${item.overdue ? '<button class="finish-overdue" type="button" aria-label="Finalizar compromisso" title="Finalizar">✓</button>' : ""}
+  `;
+  itemElement.querySelector(".attention-open").addEventListener("click", item.action);
+  if (item.overdue) {
+    itemElement.querySelector(".finish-overdue").addEventListener("click", () => {
+      finishOverdueTask(item.id);
+    });
+  }
+  return itemElement;
 }
 
 function finishOverdueTask(id) {
