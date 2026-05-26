@@ -643,6 +643,18 @@ textarea:focus {
   display: grid;
   grid-template-columns: repeat(2, minmax(280px, 1fr));
   gap: 7px 12px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.attention-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.attention-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(236, 79, 163, 0.8), rgba(178, 104, 255, 0.8));
 }
 
 .attention-item {

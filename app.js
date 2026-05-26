@@ -597,10 +597,9 @@ function renderAttention() {
       action: () => editManagement(record.id)
     }));
 
-  const alerts = [...overdueAlerts, ...taskAlerts, ...demandAlerts].slice(0, 8);
+  const alerts = [...overdueAlerts, ...taskAlerts, ...demandAlerts];
   els.overdueCount.textContent = `${overdueAlerts.length} ${overdueAlerts.length === 1 ? "atrasado" : "atrasados"}`;
   els.overdueCount.classList.toggle("has-overdue", overdueAlerts.length > 0);
-  els.attentionCount.textContent = alerts.length;
   els.attentionList.innerHTML = "";
 
   if (!alerts.length) {
