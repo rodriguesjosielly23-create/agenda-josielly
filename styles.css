@@ -655,9 +655,27 @@ textarea:focus {
   text-align: left;
 }
 
+.attention-open {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
+}
+
 .attention-item.is-overdue {
   border-color: rgba(255, 95, 126, 0.42);
   background: linear-gradient(135deg, rgba(255, 95, 126, 0.13), rgba(176, 42, 223, 0.09)), var(--surface-strong);
+}
+
+.finish-overdue {
+  min-height: 38px;
+  margin-top: 5px;
+  border-radius: 12px;
+  color: white;
+  background: linear-gradient(135deg, #64d96b, #28d7c2);
+  font-weight: 900;
 }
 
 .attention-item strong {

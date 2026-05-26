@@ -570,6 +570,7 @@ function renderAttention() {
     .filter((task) => !task.done && task.date && task.date < today)
     .sort((a, b) => (a.date + (a.time || "99:99")).localeCompare(b.date + (b.time || "99:99")))
     .map((task) => ({
+      id: task.id,
       kind: "Atrasado",
       title: task.title,
       detail: `Venceu em ${formatDate(task.date)}${task.time ? ` · ${task.time}` : ""}`,
@@ -611,17 +612,34 @@ function renderAttention() {
   }
 
   alerts.forEach((item) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `attention-item${item.overdue ? " is-overdue" : ""}`;
-    button.innerHTML = `
-      <span class="status-badge${item.overdue ? " is-pending" : ""}">${escapeHtml(item.kind)}</span>
-      <strong>${escapeHtml(item.title)}</strong>
-      <small>${escapeHtml(item.detail)}</small>
+    const itemElement = document.createElement("article");
+    itemElement.className = `attention-item${item.overdue ? " is-overdue" : ""}`;
+    itemElement.innerHTML = `
+      <button class="attention-open" type="button">
+        <span class="status-badge${item.overdue ? " is-pending" : ""}">${escapeHtml(item.kind)}</span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.detail)}</small>
+      </button>
+      ${item.overdue ? '<button class="finish-overdue" type="button">Finalizar</button>' : ""}
     `;
-    button.addEventListener("click", item.action);
-    els.attentionList.appendChild(button);
+    itemElement.querySelector(".attention-open").addEventListener("click", item.action);
+    if (item.overdue) {
+      itemElement.querySelector(".finish-overdue").addEventListener("click", () => {
+        finishOverdueTask(item.id);
+      });
+    }
+    els.attentionList.appendChild(itemElement);
   });
+}
+
+function finishOverdueTask(id) {
+  const task = state.tasks.find((item) => item.id === id);
+  if (!task) return;
+  task.done = true;
+  task.status = "done";
+  saveTasks();
+  render();
+  document.querySelector('.column[data-status="done"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function renderTaskSearch() {
