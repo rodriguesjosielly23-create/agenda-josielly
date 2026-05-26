@@ -620,7 +620,7 @@ function renderAttention() {
         <strong>${escapeHtml(item.title)}</strong>
         <small>${escapeHtml(item.detail)}</small>
       </button>
-      ${item.overdue ? '<button class="finish-overdue" type="button">Finalizar</button>' : ""}
+      ${item.overdue ? '<button class="finish-overdue" type="button" aria-label="Finalizar compromisso" title="Finalizar">✓</button>' : ""}
     `;
     itemElement.querySelector(".attention-open").addEventListener("click", item.action);
     if (item.overdue) {

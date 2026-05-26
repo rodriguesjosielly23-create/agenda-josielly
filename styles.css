@@ -623,13 +623,14 @@ textarea:focus {
 .overdue-count {
   display: inline-flex;
   align-items: center;
-  min-height: 42px;
+  min-height: 32px;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 0 14px;
+  border-radius: 999px;
+  padding: 0 11px;
   color: var(--muted);
   background: var(--surface-strong);
-  font-weight: 900;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .overdue-count.has-overdue {
@@ -640,16 +641,17 @@ textarea:focus {
 
 .attention-list {
   display: grid;
-  grid-template-columns: repeat(4, minmax(180px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 7px 12px;
 }
 
 .attention-item {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 14px;
+  border-radius: 13px;
+  padding: 8px 9px 8px 11px;
   color: var(--ink);
   background: var(--surface-strong);
   text-align: left;
@@ -657,7 +659,12 @@ textarea:focus {
 
 .attention-open {
   display: grid;
-  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 9px;
+  row-gap: 2px;
+  flex: 1;
+  min-width: 0;
   padding: 0;
   color: var(--ink);
   background: transparent;
@@ -665,31 +672,51 @@ textarea:focus {
 }
 
 .attention-item.is-overdue {
-  border-color: rgba(255, 95, 126, 0.42);
-  background: linear-gradient(135deg, rgba(255, 95, 126, 0.13), rgba(176, 42, 223, 0.09)), var(--surface-strong);
+  border-color: rgba(236, 79, 163, 0.25);
+  background: linear-gradient(135deg, rgba(236, 79, 163, 0.07), rgba(176, 42, 223, 0.04)), var(--surface-strong);
 }
 
 .finish-overdue {
-  min-height: 38px;
-  margin-top: 5px;
-  border-radius: 12px;
-  color: white;
-  background: linear-gradient(135deg, #64d96b, #28d7c2);
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(100, 217, 107, 0.3);
+  border-radius: 999px;
+  padding: 0;
+  color: #64d96b;
+  background: rgba(100, 217, 107, 0.09);
+  font-size: 0.95rem;
   font-weight: 900;
 }
 
+.finish-overdue:hover {
+  color: white;
+  background: linear-gradient(135deg, #64d96b, #28d7c2);
+}
+
 .attention-item strong {
-  font-size: 0.98rem;
+  display: block;
+  overflow: hidden;
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .attention-item small {
-  display: -webkit-box;
+  grid-column: 2;
+  display: block;
   overflow: hidden;
   color: var(--muted);
   font-weight: 700;
   line-height: 1.35;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attention-item .status-badge {
+  grid-row: span 2;
+  padding: 5px 8px;
+  font-size: 0.68rem;
 }
 
 .task-search-list {
