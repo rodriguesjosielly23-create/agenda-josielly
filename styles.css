@@ -639,6 +639,69 @@ textarea:focus {
   background: linear-gradient(135deg, #ff5f7e, #b02adf);
 }
 
+.overdue-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 13px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 7px 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.overdue-bulk-actions[hidden] {
+  display: none;
+}
+
+.bulk-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.bulk-select-all input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--hot-pink);
+}
+
+.selected-count {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.bulk-finish,
+.bulk-delete {
+  min-height: 31px;
+  border-radius: 999px;
+  padding: 0 12px;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.bulk-finish {
+  color: #51d6a5;
+  border: 1px solid rgba(81, 214, 165, 0.3);
+  background: rgba(81, 214, 165, 0.09);
+}
+
+.bulk-delete {
+  color: #ff8ac5;
+  border: 1px solid rgba(236, 79, 163, 0.28);
+  background: rgba(236, 79, 163, 0.09);
+}
+
+.bulk-finish:disabled,
+.bulk-delete:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
 .attention-list {
   display: grid;
   gap: 15px;
@@ -706,6 +769,32 @@ textarea:focus {
   text-align: left;
 }
 
+.attention-select {
+  position: relative;
+  display: grid;
+  flex: 0 0 18px;
+  place-items: center;
+}
+
+.attention-select input {
+  position: absolute;
+  opacity: 0;
+}
+
+.attention-select span {
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(236, 79, 163, 0.38);
+  border-radius: 5px;
+  background: rgba(236, 79, 163, 0.05);
+}
+
+.attention-select input:checked + span {
+  border-color: var(--hot-pink);
+  background: var(--hot-pink);
+  box-shadow: inset 0 0 0 3px rgba(30, 14, 48, 0.9);
+}
+
 .attention-open {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -723,6 +812,11 @@ textarea:focus {
 .attention-item.is-overdue {
   border-color: rgba(236, 79, 163, 0.25);
   background: linear-gradient(135deg, rgba(236, 79, 163, 0.07), rgba(176, 42, 223, 0.04)), var(--surface-strong);
+}
+
+.attention-item.is-selected {
+  border-color: rgba(236, 79, 163, 0.48);
+  background: linear-gradient(135deg, rgba(236, 79, 163, 0.13), rgba(178, 104, 255, 0.08)), var(--surface-strong);
 }
 
 .finish-overdue {
@@ -1593,6 +1687,15 @@ menu {
 
   .attention-group-list {
     grid-template-columns: 1fr;
+  }
+
+  .overdue-bulk-actions {
+    flex-wrap: wrap;
+  }
+
+  .selected-count {
+    order: 4;
+    width: 100%;
   }
 
   .availability-grid {

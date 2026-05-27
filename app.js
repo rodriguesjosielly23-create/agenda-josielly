@@ -29,7 +29,8 @@ const state = {
   draggingId: null,
   selectedDate: localDateISO(),
   calendarDate: new Date(),
-  activeAttachments: []
+  activeAttachments: [],
+  overdueSelection: new Set()
 };
 
 const els = {
@@ -99,6 +100,11 @@ const els = {
   routineList: document.querySelector("#routineList"),
   clearRoutineBtn: document.querySelector("#clearRoutineBtn"),
   overdueCount: document.querySelector("#overdueCount"),
+  overdueBulkActions: document.querySelector("#overdueBulkActions"),
+  selectAllOverdue: document.querySelector("#selectAllOverdue"),
+  selectedOverdueCount: document.querySelector("#selectedOverdueCount"),
+  finishSelectedOverdue: document.querySelector("#finishSelectedOverdue"),
+  deleteSelectedOverdue: document.querySelector("#deleteSelectedOverdue"),
   attentionCount: document.querySelector("#attentionCount"),
   attentionList: document.querySelector("#attentionList"),
   taskSearchInput: document.querySelector("#taskSearchInput"),
@@ -607,8 +613,11 @@ function renderAttention() {
     }));
 
   const alerts = [...overdueAlerts, ...taskAlerts, ...demandAlerts];
+  const overdueIds = new Set(overdueAlerts.map((item) => item.id));
+  state.overdueSelection = new Set([...state.overdueSelection].filter((id) => overdueIds.has(id)));
   els.overdueCount.textContent = `${overdueAlerts.length} ${overdueAlerts.length === 1 ? "atrasado" : "atrasados"}`;
   els.overdueCount.classList.toggle("has-overdue", overdueAlerts.length > 0);
+  updateOverdueBulkActions(overdueAlerts);
   els.attentionList.innerHTML = "";
 
   if (!alerts.length) {
@@ -644,8 +653,13 @@ function renderAttentionGroup(title, items) {
 
 function createAttentionItem(item) {
   const itemElement = document.createElement("article");
-  itemElement.className = `attention-item${item.overdue ? " is-overdue" : ""}`;
+  const selected = item.overdue && state.overdueSelection.has(item.id);
+  itemElement.className = `attention-item${item.overdue ? " is-overdue" : ""}${selected ? " is-selected" : ""}`;
   itemElement.innerHTML = `
+    ${item.overdue ? `<label class="attention-select" title="Selecionar">
+      <input type="checkbox" ${selected ? "checked" : ""} />
+      <span aria-hidden="true"></span>
+    </label>` : ""}
     <button class="attention-open" type="button">
       <span class="status-badge${item.overdue ? " is-pending" : ""}">${escapeHtml(item.kind)}</span>
       <strong>${escapeHtml(item.title)}</strong>
@@ -653,6 +667,16 @@ function createAttentionItem(item) {
     </button>
     ${item.overdue ? '<button class="finish-overdue" type="button" aria-label="Finalizar compromisso" title="Finalizar">✓</button>' : ""}
   `;
+  if (item.overdue) {
+    itemElement.querySelector(".attention-select input").addEventListener("change", (event) => {
+      if (event.target.checked) {
+        state.overdueSelection.add(item.id);
+      } else {
+        state.overdueSelection.delete(item.id);
+      }
+      renderAttention();
+    });
+  }
   itemElement.querySelector(".attention-open").addEventListener("click", item.action);
   if (item.overdue) {
     itemElement.querySelector(".finish-overdue").addEventListener("click", () => {
@@ -660,6 +684,22 @@ function createAttentionItem(item) {
     });
   }
   return itemElement;
+}
+
+function getOverdueTasks() {
+  const today = localDateISO();
+  return state.tasks.filter((task) => !task.done && task.date && task.date < today);
+}
+
+function updateOverdueBulkActions(overdueItems = []) {
+  const total = overdueItems.length;
+  const selected = state.overdueSelection.size;
+  els.overdueBulkActions.hidden = total === 0;
+  els.selectedOverdueCount.textContent = `${selected} ${selected === 1 ? "selecionado" : "selecionados"}`;
+  els.finishSelectedOverdue.disabled = selected === 0;
+  els.deleteSelectedOverdue.disabled = selected === 0;
+  els.selectAllOverdue.checked = total > 0 && selected === total;
+  els.selectAllOverdue.indeterminate = selected > 0 && selected < total;
 }
 
 function finishOverdueTask(id) {
@@ -670,6 +710,31 @@ function finishOverdueTask(id) {
   saveTasks();
   render();
   document.querySelector('.column[data-status="done"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function finishSelectedOverdueTasks() {
+  if (!state.overdueSelection.size) return;
+  state.tasks.forEach((task) => {
+    if (state.overdueSelection.has(task.id)) {
+      task.done = true;
+      task.status = "done";
+    }
+  });
+  state.overdueSelection.clear();
+  saveTasks();
+  render();
+  document.querySelector('.column[data-status="done"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function deleteSelectedOverdueTasks() {
+  const selected = [...state.overdueSelection];
+  if (!selected.length) return;
+  if (!window.confirm(`Excluir ${selected.length} compromisso(s) selecionado(s)?`)) return;
+  selected.forEach((id) => deleteCloudRecord("commitments", id));
+  state.tasks = state.tasks.filter((task) => !state.overdueSelection.has(task.id));
+  state.overdueSelection.clear();
+  saveTasks();
+  render();
 }
 
 function renderTaskSearch() {
@@ -1423,6 +1488,15 @@ els.routineSearch.addEventListener("input", (event) => {
   state.routineFilter = event.target.value;
   renderManagement();
 });
+els.selectAllOverdue.addEventListener("change", (event) => {
+  const overdueTasks = getOverdueTasks();
+  state.overdueSelection = event.target.checked
+    ? new Set(overdueTasks.map((task) => task.id))
+    : new Set();
+  renderAttention();
+});
+els.finishSelectedOverdue.addEventListener("click", finishSelectedOverdueTasks);
+els.deleteSelectedOverdue.addEventListener("click", deleteSelectedOverdueTasks);
 els.taskSearchInput.addEventListener("focus", () => {
   state.taskSearchOpen = true;
   renderTaskSearch();

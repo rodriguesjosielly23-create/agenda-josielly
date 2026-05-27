@@ -171,6 +171,15 @@
               <span class="overdue-count" id="overdueCount">0 atrasados</span>
             </div>
           </div>
+          <div class="overdue-bulk-actions" id="overdueBulkActions" hidden>
+            <label class="bulk-select-all">
+              <input id="selectAllOverdue" type="checkbox" />
+              <span>Selecionar todos</span>
+            </label>
+            <span class="selected-count" id="selectedOverdueCount">0 selecionados</span>
+            <button class="bulk-finish" id="finishSelectedOverdue" type="button" disabled>Finalizar</button>
+            <button class="bulk-delete" id="deleteSelectedOverdue" type="button" disabled>Excluir</button>
+          </div>
           <div class="attention-list" id="attentionList"></div>
         </section>
 
